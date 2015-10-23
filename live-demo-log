@@ -1,0 +1,126 @@
+import scalaz._
+import Scalaz._
+Welcome to Scala version 2.11.7 (Java HotSpot(TM) 64-Bit Server VM, Java 1.8.0_25).
+Type in expressions to have them evaluated.
+Type :help for more information.
+
+scala> import play.api.libs.json.{JsArray, JsValue, Format, Json}
+import play.api.libs.json.{JsArray, JsValue, Format, Json}
+
+scala> import shapeless.{Poly2, Poly1, HNil}
+import shapeless.{Poly2, Poly1, HNil}
+
+scala>
+
+scala>
+
+scala>
+
+scala>
+
+scala>
+
+scala> case class Foo(a: List[Int], b: String, c: Int, d: Map[String, Int])
+defined class Foo
+
+scala>
+
+scala>
+
+scala> Foo(List.empty, "some string", 10, Map.empty)
+res1: Foo = Foo(List(),some string,10,Map())
+
+scala> val (a, b, c, d) = Foo.unapply(res1).get
+a: List[Int] = List()
+b: String = some string
+c: Int = 10
+d: Map[String,Int] = Map()
+
+scala> object toJson extends Poly1 {
+     |   implicit def caseAnythingWithFormat[A: Format] =
+     |     at[A](Json.toJson(_))
+     | }
+defined object toJson
+
+scala> val hList = List(1, 2, 3, 4) :: "Some String" :: 5 :: Map("a" -> 1, "b" -> 2, "c" -> 3) :: HNil
+hList: shapeless.::[List[Int],shapeless.::[String,shapeless.::[Int,shapeless.::[scala.collection.immutable.Map[String,Int],shapeless.HNil]]]] = List(1, 2, 3, 4) :: Some String :: 5 :: Map(a -> 1, b -> 2, c -> 3) :: HNil
+
+scala> hList.head
+res2: List[Int] = List(1, 2, 3, 4)
+
+scala> hList(1)
+res3: String = Some String
+
+scala> hList(7)
+<console>:20: error: Implicit not found: shapeless.Ops.At[shapeless.::[List[Int],shapeless.::[String,shapeless.::[Int,shapeless.::[scala.collection.immutable.Map[String,Int],shapeless.HNil]]]], nat_$macro$2.N]. You requested to access an element at the position nat_$macro$2.N, but the HList shapeless.::[List[Int],shapeless.::[String,shapeless.::[Int,shapeless.::[scala.collection.immutable.Map[String,Int],shapeless.HNil]]]] is too short.
+       hList(7)
+            ^
+
+scala> hList.map(toJson)
+res5: shapeless.::[play.api.libs.json.JsValue,shapeless.::[play.api.libs.json.JsValue,shapeless.::[play.api.libs.json.JsValue,shapeless.::[play.api.libs.json.JsValue,shapeless.HNil]]]] = [1,2,3,4] :: "Some String" :: 5 :: {"a":1,"b":2,"c":3} :: HNil
+
+scala>
+
+scala>
+
+scala> object toJsonArray extends Poly2 {
+     |   implicit def caseFoldAnythingWithFormat[A](implicit evA: toJson.Case.Aux[A, JsValue]) =
+     |     at[JsArray, A]((acc, t) =>  acc :+ toJson(t))
+     | }
+defined object toJsonArray
+
+scala>
+
+scala>
+
+scala> val hListJsArray = hList.foldLeft(JsArray.apply())(toJsonArray)
+hListJsArray: play.api.libs.json.JsArray = [[1,2,3,4],"Some String",5,{"a":1,"b":2,"c":3}]
+
+scala>
+
+scala>
+
+scala> import shapeless.syntax.std.traversable._
+import shapeless.syntax.std.traversable._
+
+scala> val tuple = Foo.unapply(res1).get
+tuple: (List[Int], String, Int, Map[String,Int]) = (List(),some string,10,Map())
+
+scala> val tuple = hList.tupled
+tuple: (List[Int], String, Int, scala.collection.immutable.Map[String,Int]) = (List(1, 2, 3, 4),Some String,5,Map(a -> 1, b -> 2, c -> 3))
+
+scala> tuple(1)
+<console>:24: error: (List[Int], String, Int, scala.collection.immutable.Map[String,Int]) does not take parameters
+       tuple(1)
+            ^
+
+scala> import shapeless.syntax.std.tuple._
+import shapeless.syntax.std.tuple._
+
+scala> tuple(1)
+res7: String = Some String
+
+scala> tuple.take(2)
+res8: (List[Int], String) = (List(1, 2, 3, 4),Some String)
+
+scala> tuple.take(10)
+<console>:27: error: could not find implicit value for parameter take: shapeless.ops.tuple.Take[(List[Int], String, Int, scala.collection.immutable.Map[String,Int]),nat_$macro$15.N]
+       tuple.take(10)
+                 ^
+
+scala> tuple.tail.take(1)
+res10: (String,) = (Some String,)
+
+scala>
+
+scala>
+
+scala> val tupleJsArray = tuple.foldLeft(JsArray.apply())(toJsonArray)
+tupleJsArray: play.api.libs.json.JsArray = [[1,2,3,4],"Some String",5,{"a":1,"b":2,"c":3}]
+
+scala> val foo2 = (Foo.apply _).tupled (hList.tupled)
+foo2: Foo = Foo(List(1, 2, 3, 4),Some String,5,Map(a -> 1, b -> 2, c -> 3))
+
+scala>
+
+scala>

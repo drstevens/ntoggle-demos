@@ -1,0 +1,39 @@
+
+import play.api.libs.json.{JsArray, JsValue, Format, Json}
+import shapeless.{Poly2, Poly1, HNil}
+
+
+object toJson extends Poly1 {
+  implicit def caseAnythingWithFormat[A: Format] =
+    at[A](Json.toJson(_))
+}
+
+val hList = List(1, 2, 3, 4) :: "Some String" :: 5 :: Map("a" -> 1, "b" -> 2, "c" -> 3) :: HNil
+
+object toJsonArray extends Poly2 {
+  implicit def caseFoldAnythingWithFormat[A](implicit evA: toJson.Case.Aux[A, JsValue]) =
+    at[JsArray, A]((acc, t) =>  acc :+ toJson(t))
+}
+
+val hListJsArray = hList.foldLeft(JsArray.apply())(toJsonArray)
+Json.prettyPrint(hListJsArray)
+
+import shapeless.syntax.std.traversable._
+val tuple = hList.tupled
+
+import shapeless.syntax.std.tuple._
+tuple.head
+tuple.tail
+tuple.take(3)
+tuple(2)
+//tuple(6)
+//tuple(-1)
+
+val tupleJsArray = tuple.foldLeft(JsArray.apply())(toJsonArray)
+Json.prettyPrint(tupleJsArray)
+
+case class Foo(a: List[Int], b: String, c: Int, d: Map[String, Int])
+
+val foo1 = Foo(hList(0), hList(1), hList(2), hList(3))
+
+val foo2 = (Foo.apply _).tupled (hList.tupled)
