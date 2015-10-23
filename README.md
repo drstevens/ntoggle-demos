@@ -3,5 +3,6 @@
 See some good examples https://github.com/milessabin/shapeless/wiki/Feature-overview:-shapeless-2.0.0 for more examples
 
 [live-demo-log](live-demo-log) contains the output from the REPL produced during 15 minute demo
+
 [demo-outline](demo-outline) contains a rough outline of what I planned to go through during the demo
 
