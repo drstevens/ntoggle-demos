@@ -180,7 +180,7 @@ Johnny showed the following command that works with tcpdump instead of ngrep:
 sudo tcpdump -s 65535 -nn -A -l -i any dst port 4242 | grep ^{ | jq '.imp[0].banner.ext.native’`
 ```
 
-Ashley shared an alternative version using tcpdump:
+Ashley shared an alternative version using tcpdump that ignores non-POSTs:
 ```
 tcpdump -t -q -s 0 -A 'tcp dst port 4242 and (tcp[((tcp[12:1] & 0xf0) >> 2):4] = 0x504f5354)’
 ```
