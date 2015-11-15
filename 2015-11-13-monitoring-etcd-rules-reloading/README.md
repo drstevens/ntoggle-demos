@@ -4,6 +4,7 @@ Within the nRoute platform, the helix-service component is responsible for recei
 
 # Guiding principles for monitoring design
 We found the following principles helpful to guide us towards a flexible and robust monitoring solution.  These principles can be applied to other monitoring concerns.
+
 | Principle | Why is it useful? |
 | --------- | ----------------- |
 | Support changing the alerting mechanism without changing the system-under-observation | From past experience, it is frequently the case that the alerting mechanism needs to be tweaked (e.g. alert after 5 warnings instead of 3).  Baking the alerting mechanism into the system-under-observation requires re-deploying the system-under-observation, which may be untenable and increases cycle time. |
