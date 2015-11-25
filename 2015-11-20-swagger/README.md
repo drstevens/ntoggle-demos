@@ -1,4 +1,6 @@
-# [![nToggle](http://static1.squarespace.com/static/54aff901e4b09d0a90426749/t/54aff95fe4b0fbcca432e54d/1423161066764/?format=1500w)](http://www.ntoggle.com/) Overview of Swagger
+# [![nToggle]
+(http://static1.squarespace.com/static/54aff901e4b09d0a90426749/t/54aff95fe4b0fbcca432e54d/1423161066764/?format=1500w)](http://www.ntoggle.com/)
+# Overview of Swagger
 
 We have chosen to use the Swagger standard for providing REST API documentation within the Kubitschek project.
 The Kubitschek project uses the Swagger JSON format to provide developer documentation for the configuration API.
