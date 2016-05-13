@@ -1,0 +1,219 @@
+Welcome to Scala 2.11.8 (Java HotSpot(TM) 64-Bit Server VM, Java 1.8.0_25).
+Type in expressions for evaluation. Or try :help.
+
+scala> import shapeless.HList
+import shapeless.HList
+
+scala> case class ABDC(
+     | a: Option[Double],
+     | b: Option[Int],
+     | d: Option[String],
+     | c: Option[String])
+defined class ABDC
+
+scala>
+
+scala> case class BAD(
+     | b: Option[String],
+     | a: Option[String],
+     | d: Option[String])
+defined class BAD
+
+scala>
+
+scala> val abdc = ABDC(
+     | Option(5.55d),
+     | Option(23),
+     | Option("d"),
+     | Option("c"))
+abdc: ABDC = ABDC(Some(5.55),Some(23),Some(d),Some(c))
+
+scala> BAD(
+     | abdc.a.map(_.toString),
+     | abdc.b.map(_.toString),
+     | abdc.c.map(_.toString))
+res0: BAD = BAD(Some(5.55),Some(23),Some(c))
+
+scala> import shapeless.Generic
+import shapeless.Generic
+
+scala> val genABDC = Generic[ABDC]
+genABDC: shapeless.Generic[ABDC]{type Repr = shapeless.::[Option[Double],shapeless.::[Option[Int],shapeless.::[Option[String],shapeless.::[Option[String],shapeless.HNil]]]]} = fresh$macro$5$1@3cb35f6c
+
+scala> val repABDC = genABDC.to(abdc)
+repABDC: genABDC.Repr = Some(5.55) :: Some(23) :: Some(d) :: Some(c) :: HNil
+
+scala> val abdc2 = genABDC.from(repABDC)
+abdc2: ABDC = ABDC(Some(5.55),Some(23),Some(d),Some(c))
+
+scala> val genB = Generic[BAD]
+genB: shapeless.Generic[BAD]{type Repr = shapeless.::[Option[String],shapeless.::[Option[String],shapeless.::[Option[String],shapeless.HNil]]]} = fresh$macro$9$1@97a0dfd
+
+scala> import shapeless.Poly1
+import shapeless.Poly1
+
+scala> object mapValues extends Poly1 {
+     |   implicit def optInt[K] = at[Option[Int]](_.map(_.toString))
+     |   implicit def optDouble[K] = at[Option[Double]](_.map(_.toString))
+     |   implicit def optString[K] = at[Option[String]](identity[Option[String]])
+     | }
+defined object mapValues
+
+scala> val repABDC2 = repABDC.map(mapValues)
+repABDC2: shapeless.::[Option[String],shapeless.::[Option[String],shapeless.::[Option[String],shapeless.::[Option[String],shapeless.HNil]]]] = Some(5.55) :: Some(23) :: Some(d) :: Some(c) :: HNil
+
+scala> genB.from(repABDC2.take(3))
+res1: BAD = BAD(Some(5.55),Some(23),Some(d))
+
+scala> object mapValues extends Poly1 {
+     |   implicit def optInt = at[Option[Int]](_.map(_.toString))
+     |   implicit def optDouble = at[Option[Double]](_.map(_.toString))
+     |   implicit def optString = at[Option[String]](identity[Option[String]])
+     | }
+defined object mapValues
+
+scala> val repABDC2 = repABDC.map(mapValues)
+repABDC2: shapeless.::[Option[String],shapeless.::[Option[String],shapeless.::[Option[String],shapeless.::[Option[String],shapeless.HNil]]]] = Some(5.55) :: Some(23) :: Some(d) :: Some(c) :: HNil
+
+scala> import shapeless.HNil
+import shapeless.HNil
+
+scala> import shapeless.syntax.singleton._
+import shapeless.syntax.singleton._
+
+scala> val recordABDC = {
+     |   'a ->> Option(5.55d) ::
+     |   'b ->> Option(23) ::
+     |   'd ->> Option("d") ::
+     |   'c ->> Option("c") :: HNil
+     | }
+recordABDC: shapeless.::[Option[Double] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("a")],Option[Double]],shapeless.::[Option[Int] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("b")],Option[Int]],shapeless.::[Option[String] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("d")],Option[String]],shapeless.::[Option[String] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("c")],Option[String]],shapeless.HNil]]]] = Some(5.55) :: Some(23) :: Some(d) :: Some(c) :: HNil
+
+scala> import shapeless.record._ // needed to treat HList as record
+import shapeless.record._
+
+scala> 'z ->> 10 :: recordABDC
+res2: shapeless.::[Int with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("z")],Int],shapeless.::[Option[Double] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("a")],Option[Double]],shapeless.::[Option[Int] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("b")],Option[Int]],shapeless.::[Option[String] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("d")],Option[String]],shapeless.::[Option[String] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("c")],Option[String]],shapeless.HNil]]]]] = 10 :: Some(5.55) :: Some(23) :: Some(d) :: Some(c) :: HNil
+
+scala> recordABDC + ('z ->> 10) - 'z
+res3: shapeless.::[Option[Double] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("a")],Option[Double]],shapeless.::[Option[Int] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("b")],Option[Int]],shapeless.::[Option[String] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("d")],Option[String]],shapeless.::[Option[String] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("c")],Option[String]],shapeless.HNil]]]] = Some(5.55) :: Some(23) :: Some(d) :: Some(c) :: HNil
+
+scala> recordABDC + ('z ->> 10) + 'z ->> 22
+<console>:23: error: could not find implicit value for parameter updater: shapeless.ops.record.Updater[shapeless.::[Option[Double] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("a")],Option[Double]],shapeless.::[Option[Int] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("b")],Option[Int]],shapeless.::[Option[String] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("d")],Option[String]],shapeless.::[Option[String] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("c")],Option[String]],shapeless.::[Int with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("z")],Int],shapeless.HNil]]]]],Symbol]
+       recordABDC + ('z ->> 10) + 'z ->> 22
+                                ^
+
+scala> recordABDC + ('z ->> 10) + ('z ->> 22)
+res5: shapeless.::[Option[Double] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("a")],Option[Double]],shapeless.::[Option[Int] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("b")],Option[Int]],shapeless.::[Option[String] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("d")],Option[String]],shapeless.::[Option[String] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("c")],Option[String]],shapeless.::[Int with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("z")],Int],shapeless.HNil]]]]] = Some(5.55) :: Some(23) :: Some(d) :: Some(c) :: 22 :: HNil
+
+scala> import shapeless.LabelledGeneric
+import shapeless.LabelledGeneric
+
+scala> val lgenABDC = LabelledGeneric[ABDC]
+lgenABDC: shapeless.LabelledGeneric[ABDC]{type Repr = shapeless.::[Option[Double] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("a")],Option[Double]],shapeless.::[Option[Int] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("b")],Option[Int]],shapeless.::[Option[String] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("d")],Option[String]],shapeless.::[Option[String] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("c")],Option[String]],shapeless.HNil]]]]} = shapeless.LabelledGeneric$$anon$1@4f149eec
+
+scala> lgenABDC.from(lgenABDC.to(abdc))
+res6: ABDC = ABDC(Some(5.55),Some(23),Some(d),Some(c))
+
+scala> val lrepABDC = lgenABDC.to(abdc)
+lrepABDC: lgenABDC.Repr = Some(5.55) :: Some(23) :: Some(d) :: Some(c) :: HNil
+
+scala> lrepABDC == recordABDC
+res7: Boolean = true
+
+scala>
+
+scala>
+
+scala> lrepABDC - 'c
+res8: shapeless.::[Option[Double] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("a")],Option[Double]],shapeless.::[Option[Int] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("b")],Option[Int]],shapeless.::[Option[String] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("d")],Option[String]],shapeless.HNil]]] = Some(5.55) :: Some(23) :: Some(d) :: HNil
+
+scala> import shapeless.labelled.{FieldType, field}
+import shapeless.labelled.{FieldType, field}
+
+scala> import shapeless.Poly1
+import shapeless.Poly1
+
+scala> object mapValues extends Poly1 {
+     |   implicit def optInt[K] = at[FieldType[K, Option[Int]]](b =>
+     |     field[K](b.map(_.toString)))
+     |
+     |   implicit def optDouble[K] = at[FieldType[K, Option[Double]]](b =>
+     |     field[K](b.map(_.toString)))
+     |
+     |   implicit def optString[K] =
+     |     at[FieldType[K, Option[String]]]((b: Option[String]) => field[K](b))
+     | }
+defined object mapValues
+
+scala> val mapped = (lrepABDC - 'c).map(mapValues)
+mapped: shapeless.::[Option[String] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("a")],Option[String]],shapeless.::[Option[String] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("b")],Option[String]],shapeless.::[Option[String] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("d")],Option[String]],shapeless.HNil]]] = Some(5.55) :: Some(23) :: Some(d) :: HNil
+
+scala> val lgenBAD = LabelledGeneric[BAD]
+lgenBAD: shapeless.LabelledGeneric[BAD]{type Repr = shapeless.::[Option[String] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("b")],Option[String]],shapeless.::[Option[String] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("a")],Option[String]],shapeless.::[Option[String] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("d")],Option[String]],shapeless.HNil]]]} = shapeless.LabelledGeneric$$anon$1@e3fc689
+
+scala> import shapeless.ops.hlist.Align
+import shapeless.ops.hlist.Align
+
+scala> lgenBAD.to(mapped)
+<console>:36: error: type mismatch;
+ found   : shapeless.::[Option[String] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("a")],Option[String]],shapeless.::[Option[String] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("b")],Option[String]],shapeless.::[Option[String] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("d")],Option[String]],shapeless.HNil]]]
+ required: BAD
+       lgenBAD.to(mapped)
+                  ^
+
+scala> lgenBAD.from(mapped)
+<console>:36: error: type mismatch;
+ found   : shapeless.::[Option[String] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("a")],Option[String]],shapeless.::[Option[String] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("b")],Option[String]],shapeless.::[Option[String] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("d")],Option[String]],shapeless.HNil]]]
+ required: lgenBAD.Repr
+    (which expands to)  shapeless.::[Option[String] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("b")],Option[String]],shapeless.::[Option[String] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("a")],Option[String]],shapeless.::[Option[String] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("d")],Option[String]],shapeless.HNil]]]
+       lgenBAD.from(mapped)
+                    ^
+
+scala> case class BDA(
+     |   b: Option[String],
+     |   d: Option[String],
+     |   a: Option[String])
+defined class BDA
+
+scala> val lgenBDA = LabelledGeneric[BDA]
+lgenBDA: shapeless.LabelledGeneric[BDA]{type Repr = shapeless.::[Option[String] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("b")],Option[String]],shapeless.::[Option[String] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("d")],Option[String]],shapeless.::[Option[String] with shapeless.labelled.KeyTag[Symbol with shapeless.tag.Tagged[String("a")],Option[String]],shapeless.HNil]]]} = shapeless.LabelledGeneric$$anon$1@3525e012
+
+scala>
+
+scala> val bda = BDA(
+     |   abdc.b.map(_.toString),
+     |   abdc.d.map(_.toString),
+     |   abdc.a.map(_.toString))
+bda: BDA = BDA(Some(23),Some(d),Some(5.55))
+
+scala> val alignBAD = Align[lgenBDA.Repr, lgenBAD.Repr]
+alignBAD: shapeless.ops.hlist.Align[lgenBDA.Repr,lgenBAD.Repr] = <function1>
+
+scala> val bad2: BAD = lgenBAD.from(alignBAD(lgenBDA.to(bda)))
+bad2: BAD = BAD(Some(23),Some(5.55),Some(d))
+
+scala> import shapeless.HList
+import shapeless.HList
+
+scala> class ConvertRecordTo[T] {
+     |   def apply[S <: HList, TR <: HList](s: S)(implicit
+     |     genT: LabelledGeneric.Aux[T, TR],
+     |     align: Align[S, TR]) = genT.from(align(s))
+     | }
+defined class ConvertRecordTo
+
+scala> object ConvertRecordTo {
+     |   def apply[T]: ConvertRecordTo[T] = new ConvertRecordTo[T]
+     | }
+defined object ConvertRecordTo
+warning: previously defined class ConvertRecordTo is not a companion to object ConvertRecordTo.
+Companions must be defined together; you may wish to use :paste mode for this.
+
+scala> ConvertRecordTo[BAD](lgenBDA.to(bda))
+res11: BAD = BAD(Some(23),Some(5.55),Some(d))
+
+scala> ConvertRecordTo[BAD](mapped)
+res12: BAD = BAD(Some(23),Some(5.55),Some(d))
+
+scala>
